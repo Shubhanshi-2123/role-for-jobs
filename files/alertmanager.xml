@@ -1,0 +1,21 @@
+<flow-definition plugin="workflow-job">
+  <description>Alertmanager pipeline job</description>
+  <keepDependencies>false</keepDependencies>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git">
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://github.com/ot-client/o11y-k8s-setup-template.git</url>
+          <credentialsId>O11y_http_ldc</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/main</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+    </scm>
+    <scriptPath>jenkins/alertmanager-jenkinsfile</scriptPath>
+    <lightweight>true</lightweight>
+  </definition>
+</flow-definition>
