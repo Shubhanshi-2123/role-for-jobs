@@ -1,0 +1,4 @@
+<com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder">
+  <description>K8s deployment related jobs</description>
+</com.cloudbees.hudson.plugins.folder.Folder>
+
