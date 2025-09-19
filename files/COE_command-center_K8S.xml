@@ -1,0 +1,3 @@
+<com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder">
+  <description>K8S folder under Command Center</description>
+</com.cloudbees.hudson.plugins.folder.Folder>
