@@ -1,0 +1,15 @@
+---
+# defaults file for seedjob-jenkins
+# Jenkins connection details
+jenkins_url: "http://localhost:8080"
+jenkins_user: "admin"
+jenkins_token: "your-token"   
+
+# Python packages required
+jenkins_required_packages:
+  - python3-pip
+
+jenkins_required_pip_packages:
+  - python-jenkins
+  - requests
+
