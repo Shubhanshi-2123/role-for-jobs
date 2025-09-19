@@ -1,0 +1,21 @@
+<flow-definition plugin="workflow-job">
+  <description>{{ item.description }}</description>
+  <keepDependencies>false</keepDependencies>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git">
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>{{ item.repo_url }}</url>
+          <credentialsId>{{ github_cred_id }}</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>{{ item.branch }}</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+    </scm>
+    <scriptPath>{{ item.script_path }}</scriptPath>
+    <lightweight>true</lightweight>
+  </definition>
+</flow-definition>
