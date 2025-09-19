@@ -1,0 +1,26 @@
+# vars file for seedjob-jenkins
+---
+jenkins_url: "http://localhost:8080"
+jenkins_user: "admin"
+jenkins_token: "118-xyz-12e"
+github_cred_id: "github-jenkins-creds"
+
+jobs:
+  - job_name: "Attendence-Api-Pipeline"
+    description: "CI pipeline for the Attendance API microservice"
+    repo_url: "https://github.com/ayush090909/attendance-api.git"
+    branch: "main"
+    script_path: "Jenkinsfile"
+
+  - job_name: "Employee-Api-Pipeline"
+    description: "CI pipeline for the Employee API microservice"
+    repo_url: "https://github.com/OT-MICROSERVICES/employee-api.git"
+    branch: "main"
+    script_path: "Jenkinsfile"
+
+  - job_name: "Salary-Api-Pipeline"
+    description: "CI pipeline for the Salary API microservice"
+    repo_url: "https://github.com/OT-MICROSERVICES/salary-api.git"
+    branch: "main"
+    script_path: "Jenkinsfile"
+
