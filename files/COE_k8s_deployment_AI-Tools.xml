@@ -1,0 +1,3 @@
+<com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder">
+  <description>AI-Tools related jobs</description>
+</com.cloudbees.hudson.plugins.folder.Folder>
