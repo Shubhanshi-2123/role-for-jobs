@@ -1,0 +1,411 @@
+# 1. Ensure system packages for pip are installed
+- name: Install required system packages
+  apt:
+    name: "{{ jenkins_required_packages }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+# 2. Remove old apt version of python3-jenkins if installed
+- name: Remove old python3-jenkins if present
+  apt:
+    name: python3-jenkins
+    state: absent
+  become: yes
+
+# 3. Install pip packages required for Jenkins module
+- name: Install required pip packages
+  pip:
+    name: "{{ jenkins_required_pip_packages }}"
+    state: latest
+    extra_args: "--break-system-packages"
+
+# 4. Ensure folder structure exists
+- name: Ensure folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE", config: "{{ role_path }}/files/COE.xml" }
+    - { name: "COE/CI", config: "{{ role_path }}/files/CI.xml" }
+    - { name: "COE/CI/OT-Microservices", config: "{{ role_path }}/files/ot-microservices.xml" }
+    
+# 5. Create Jenkins jobs inside COE/CI/OT-Microservices folder
+- name: Create Jenkins pipeline jobs from XMLs
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item) }}"
+    name: "COE/CI/OT-Microservices/{{ item | basename | splitext | first }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  with_fileglob:
+    - "{{ role_path }}/files/*-Api-Pipeline.xml"
+# --------------------------
+# 4. OBSERVABILITY FOLDER STRUCTURE
+# --------------------------
+- name: Ensure Observability folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/Observability", config: "{{ role_path }}/files/COE_Observability.xml" }
+    - { name: "COE/Observability/o11y-setup", config: "{{ role_path }}/files/COE_Observability_o11y-setup.xml" }
+
+# --------------------------
+# 5. Create jobs under o11y-setup
+# --------------------------
+
+- name: Create Jenkins jobs inside COE/Observability/o11y-setup
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item) }}"
+    name: "COE/Observability/o11y-setup/{{ item | basename | splitext | first }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  with_fileglob:
+    # only pick observability job (exclude CI/ot-microservices folder XMLs & pipelines)
+    - "{{ role_path }}/files/tempo.xml"
+    - "{{ role_path }}/files/loki.xml"
+    - "{{ role_path }}/files/VictoriaMetrics.xml"
+    - "{{ role_path }}/files/Grafana.xml"
+    - "{{ role_path }}/files/otel-operator.xml"
+    - "{{ role_path }}/files/Grafana_dashboard.xml"
+    - "{{ role_path }}/files/Grafana_datasource.xml"
+    - "{{ role_path }}/files/alertmanager.xml"
+    - "{{ role_path }}/files/alerting_rules.xml"
+    - "{{ role_path }}/files/otel-collector.xml"
+    - "{{ role_path }}/files/Blackbox.xml"
+    - "{{ role_path }}/files/Endpoint.xml"
+
+# --------------------------
+# 6. CLUSTER-USER-CREATION FOLDER STRUCTURE
+# --------------------------
+- name: Ensure Cluster-User-creation folder exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/Cluster-User-creation", config: "{{ role_path }}/files/COE_Cluster-User-creation.xml" }
+
+# --------------------------
+# 7. Create jobs under Cluster-User-creation
+# --------------------------
+- name: Create Jenkins jobs inside COE/Cluster-User-creation
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item) }}"
+    name: "COE/Cluster-User-creation/{{ item | basename | splitext | first }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  with_fileglob:
+    - "{{ role_path }}/files/user-creation.xml"
+
+# --------------------------
+# 8. COMMAND-CENTER FOLDER STRUCTURE
+# --------------------------
+- name: Ensure Command Center folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/command-center", config: "{{ role_path }}/files/COE_command-center.xml" }
+    - { name: "COE/command-center/AWS", config: "{{ role_path }}/files/COE_command-center_AWS.xml" }
+    - { name: "COE/command-center/K8S", config: "{{ role_path }}/files/COE_command-center_K8S.xml" }
+
+# --------------------------
+# 9. Create jobs under command-center/AWS
+# --------------------------
+- name: Create AWS jobs under command-center
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item) }}"
+    name: "COE/command-center/AWS/{{ item | basename | splitext | first }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  with_fileglob:
+    - "{{ role_path }}/files/AWS-VM-START.xml"
+    - "{{ role_path }}/files/AWS-VM-STOP.xml"
+
+# --------------------------
+# 10. Create jobs under command-center/K8S
+# --------------------------
+- name: Create K8S jobs under command-center
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item) }}"
+    name: "COE/command-center/K8S/{{ item | basename | splitext | first }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  with_fileglob:
+    - "{{ role_path }}/files/user-creation-2.xml"
+# --------------------------
+# GRAVITON COMPATIBILITY SCAN JOB (directly inside COE)
+# --------------------------
+- name: Create Graviton Compatibility Scan job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/Graviton-Compatibility-Scan.xml') }}"
+    name: "COE/Graviton-Compatibility-Scan"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# HELM-CI FOLDER + JOB
+# --------------------------
+- name: Ensure Helm-CI folder exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/COE_Helm-CI.xml') }}"
+    name: "COE/Helm-CI"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create Helm-CI pipeline job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/CI-pipeline.xml') }}"
+    name: "COE/Helm-CI/CI-pipeline"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# SPENDSMART FOLDER STRUCTURE
+# --------------------------
+- name: Ensure SpendSmart folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/SpendSmart", config: "{{ role_path }}/files/COE_SpendSmart.xml" }
+    - { name: "COE/SpendSmart/AWS", config: "{{ role_path }}/files/COE_SpendSmart_AWS.xml" }
+    - { name: "COE/SpendSmart/AWS/Cost-Tracker", config: "{{ role_path }}/files/COE_SpendSmart_AWS_Cost-Tracker.xml" }
+    - { name: "COE/SpendSmart/AWS/Cost-Tracker/HRC", config: "{{ role_path }}/files/COE_SpendSmart_AWS_Cost-Tracker_HRC.xml" }
+
+# --------------------------
+# DAILY COST JOB
+# --------------------------
+- name: Create HRC Daily Cost Tracker job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/Daily-Cost-Job.xml') }}"
+    name: "COE/SpendSmart/AWS/Cost-Tracker/HRC/Daily-Cost-Job"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+# --------------------------
+# TOOLHUB-HELM-CD FOLDER
+# --------------------------
+- name: Ensure Toolhub-helm-CD folder exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/COE_Toolhub-helm-CD.xml') }}"
+    name: "COE/Toolhub-helm-CD"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# VM USERMANAGEMENT FOLDERS
+# --------------------------
+- name: Ensure VM/UserManagement folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/VM", config: "{{ role_path }}/files/COE_VM.xml" }
+    - { name: "COE/VM/UserManagement", config: "{{ role_path }}/files/COE_VM_UserManagement.xml" }
+
+# --------------------------
+# USERMANAGEMENT JOBS
+# --------------------------
+- name: Create SSH_User_Provisioning job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/SSH_User_Provisioning.xml') }}"
+    name: "COE/VM/UserManagement/SSH_User_Provisioning"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create test-1 job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/test-1.xml') }}"
+    name: "COE/VM/UserManagement/test-1"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# K8s DEPLOYMENT FOLDER STRUCTURE
+# --------------------------
+- name: Ensure k8s/deployment/AI-Tools folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/k8s", config: "{{ role_path }}/files/COE_k8s.xml" }
+    - { name: "COE/k8s/deployment", config: "{{ role_path }}/files/COE_k8s_deployment.xml" }
+    - { name: "COE/k8s/deployment/AI-Tools", config: "{{ role_path }}/files/COE_k8s_deployment_AI-Tools.xml" }
+
+# --------------------------
+# GEN-BI PIPELINE JOB
+# --------------------------
+- name: Create GenBI job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/GenBI.xml') }}"
+    name: "COE/k8s/deployment/AI-Tools/GenBI"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# EKS-UPGRADE FOLDER STRUCTURE
+# --------------------------
+- name: Ensure k8s/Eks-Upgrade folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/k8s", config: "{{ role_path }}/files/COE_k8s.xml" }
+    - { name: "COE/k8s/Eks-Upgrade", config: "{{ role_path }}/files/COE_k8s_Eks-Upgrade.xml" }
+
+# --------------------------
+# EKS-UPGRADE JOBS
+# --------------------------
+- name: Create EKS-UPGRADE job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/EKS-UPGRADE.xml') }}"
+    name: "COE/k8s/Eks-Upgrade/EKS-UPGRADE"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create Eks-TF-Upgrade job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/Eks-TF-Upgrade.xml') }}"
+    name: "COE/k8s/Eks-Upgrade/Eks-TF-Upgrade"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create testing job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/testing.xml') }}"
+    name: "COE/k8s/Eks-Upgrade/testing"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+# --------------------------
+# K8s/Deployment/Database FOLDER STRUCTURE
+# --------------------------
+- name: Ensure k8s/deployment/database folder structure exists
+  community.general.jenkins_job:
+    config: "{{ lookup('file', item.config) }}"
+    name: "{{ item.name }}"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+  loop:
+    - { name: "COE/k8s", config: "{{ role_path }}/files/COE_k8s.xml" }
+    - { name: "COE/k8s/deployment", config: "{{ role_path }}/files/COE_k8s_deployment.xml" }
+    - { name: "COE/k8s/deployment/database", config: "{{ role_path }}/files/COE_k8s_deployment_database.xml" }
+
+# --------------------------
+# Database Jobs
+# --------------------------
+- name: Create MongoDB job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/mongodb.xml') }}"
+    name: "COE/k8s/deployment/database/mongodb"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create MySQL job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/mysql.xml') }}"
+    name: "COE/k8s/deployment/database/mysql"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
+
+- name: Create PostgreSQL job
+  community.general.jenkins_job:
+    config: "{{ lookup('file', role_path + '/files/postgresql.xml') }}"
+    name: "COE/k8s/deployment/database/postgresql"
+    url: "{{ jenkins_url }}"
+    user: "{{ jenkins_user }}"
+    token: "{{ jenkins_token }}"
+    state: present
+    validate_certs: no
