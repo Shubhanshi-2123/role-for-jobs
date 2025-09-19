@@ -1,0 +1,3 @@
+<com.cloudbees.hudson.plugins.folder.Folder plugin="cloudbees-folder">
+  <description>o11y-setup folder inside Observability</description>
+</com.cloudbees.hudson.plugins.folder.Folder>
